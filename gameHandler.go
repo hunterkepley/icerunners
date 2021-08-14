@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -13,15 +14,18 @@ import (
 
 // GameEntities holds all of the game's objects
 type GameEntities struct {
-	resources  GameResources // Resources
-	gameMap    Map           // Game map
-	camera     Camera        // Camera
-	player     Player        // The actual player
-	conn       *net.UDPConn
-	buf        []byte
-	chN        chan int
-	chAddr     chan net.Addr
-	serverAddr net.Addr
+	resources GameResources // Resources
+	gameMap   Map           // Game map
+	camera    Camera        // Camera
+	player    Player        // The actual player
+
+	// Networking stuff (keep below other entities)
+	conn               *net.UDPConn
+	buf                []byte
+	chN                chan int
+	chAddr             chan net.Addr
+	serverAddr         net.Addr
+	wgSendDataToServer sync.WaitGroup
 }
 
 // GameResources holds all of the game's resources (images/music/sound)
@@ -75,6 +79,9 @@ func updateGame(g *GameEntities) {
 	// Update entities
 	g.player.update()
 
+	// Send player data to server
+	go sendPlayerDataToServer(g)
+
 	// Update camera
 	g.camera.update()
 	g.gameMap.cameraPosition = g.camera.position
@@ -94,11 +101,18 @@ func drawGame(g *GameEntities, screen *ebiten.Image) {
 
 func sendPlayerDataToServer(g *GameEntities) {
 	// Packet info: 00000000 00001111
-	ds := make([]byte, 2)
-	binary.BigEndian.PutUint16(ds, uint16(Packet.Float32fromBytes(Packet.DPlayerPosition)))
-	packet := Packet.CreatePacket(ds, []byte{0, 0}, []byte{}) // 0000000000001111 -- PCServerJoined (15)
+	// Player position
+	ds := make([]byte, 2)              // 0000 0000
+	binary.BigEndian.PutUint16(ds, 32) // 0000 0000 + 0010 0000
+
+	data := make([]byte, 0, 2)
+	binary.BigEndian.PutUint16(data, uint16(g.player.position.x))
+	binary.BigEndian.PutUint16(data, uint16(g.player.position.y))
+	fmt.Printf("!!! %s\n", data)
+	packet := Packet.CreatePacket(ds, Packet.DPlayerPosition, data)
 
 	packet.Send(g.conn, g.serverAddr)
+	// ^ send player position
 }
 
 func listenToServer(g *GameEntities) {
