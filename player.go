@@ -43,7 +43,9 @@ func (b PlayerType) String() string {
 type Player struct {
 	position Vec2f
 	size     Vec2i
-	velocity Vec2f
+
+	velocity  Vec2f
+	moveSpeed float64
 
 	state PlayerState
 	_type PlayerType
@@ -57,6 +59,7 @@ type Player struct {
 func createPlayer(position Vec2f) Player {
 	return Player{
 		position:     position,
+		moveSpeed:    0.15,
 		subImageRect: image.Rect(0, 0, iPlayerSpritesheet.Bounds().Dx(), iPlayerSpritesheet.Bounds().Dy()),
 		image:        iPlayerSpritesheet,
 	}
@@ -64,17 +67,32 @@ func createPlayer(position Vec2f) Player {
 
 func (p *Player) update() {
 	p.size = newVec2i(p.subImageRect.Dx(), p.subImageRect.Dy())
+	p.input()
+	// Idle -- stop moving
+	if p.state == PIdle {
+		if p.velocity.x > 0 {
+			p.velocity.x -= p.moveSpeed * 3
+		} else if p.velocity.x < 0 {
+			p.velocity.x += p.moveSpeed * 3
+		}
+		if p.velocity.x < p.moveSpeed && p.velocity.x > -p.moveSpeed {
+			p.velocity.x = 0
+		}
+	}
+	p.position.x += p.velocity.x
+	p.position.y += p.velocity.y
 }
 
 func (p *Player) input() {
 	p.state = PIdle
+
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		p.position.y -= p.velocity.x
+		p.velocity.x -= p.moveSpeed
 		p.state = PMovingLeft
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		p.position.x += p.velocity.y
+		p.velocity.x += p.moveSpeed
 		p.state = PMovingRight
 	}
 }

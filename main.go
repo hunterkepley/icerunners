@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	screenWidth  = 1366
-	screenHeight = 768
+	screenMultiplier = 1
+	screenWidth      = 1366 * screenMultiplier
+	screenHeight     = 768 * screenMultiplier
 )
 
 var (
@@ -48,7 +49,7 @@ func (g *Game) Init() {
 	//go music[rand.Intn(len(music)-1)].play()
 
 	// Game Entities
-	g.gameEntities.player = createPlayer(newVec2f(50, 50))
+	g.gameEntities.player = createPlayer(newVec2f(100, 200))
 
 	// GAME SETTINGS
 	loadSettings(&g.settings)
