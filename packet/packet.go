@@ -29,7 +29,8 @@ const (
 
 // Data types
 var (
-	DCameraZoom = []byte{0, 3} // 0000 0000 0000 0011
+	DCameraZoom     = []byte{0, 3} // 0000 0000 0000 0011
+	DPlayerPosition = []byte{0, 4} // 0000 0000 0000 0100
 )
 
 type Packet struct {
@@ -133,7 +134,7 @@ func Float642Byte(float float64) []byte {
 	return bytes
 }
 
-func Float32frombytes(bytes []byte) float32 {
+func Float32fromBytes(bytes []byte) float32 {
 	bits := binary.BigEndian.Uint32(bytes)
 	float := math.Float32frombits(bits)
 	return float

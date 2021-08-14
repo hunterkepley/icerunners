@@ -92,6 +92,15 @@ func drawGame(g *GameEntities, screen *ebiten.Image) {
 
 }
 
+func sendPlayerDataToServer(g *GameEntities) {
+	// Packet info: 00000000 00001111
+	ds := make([]byte, 2)
+	binary.BigEndian.PutUint16(ds, Packet.DPlayerPosition)
+	packet := Packet.CreatePacket(ds, []byte{0, 0}, []byte{}) // 0000000000001111 -- PCServerJoined (15)
+
+	packet.Send(g.conn, g.serverAddr)
+}
+
 func listenToServer(g *GameEntities) {
 	go func() {
 		n, addr, err := g.conn.ReadFrom(g.buf) // Establish connection to client
