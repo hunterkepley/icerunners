@@ -44,9 +44,14 @@ func (g *Game) Init() {
 	g.state = 1
 
 	// Game Entities
-	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 0), PNetwork))
-	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 100), PNetwork))
-	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 200), PNetwork))
+	//player1 := createPlayer(newVec2f(0, 0), PNetwork)
+	//player2 := createPlayer(newVec2f(0, 100), PNetwork)
+	//g.gameEntities.player1 = createPlayer(newVec2f(0, 0), PNetwork)
+	//g.gameEntities.player2 = createPlayer(newVec2f(0, 100), PNetwork)
+	g.gameEntities.players = append(g.gameEntities.players, &player1)
+	g.gameEntities.players = append(g.gameEntities.players, &player2)
+	//g.players = append(g.players, createPlayer(newVec2f(0, 200), PNetwork))
+	//g.players = append(g.players, createPlayer(newVec2f(0, 400), PNetwork))
 
 	//g.gameEntities.player = createPlayer(newVec2f(0, 0), PNetwork)
 

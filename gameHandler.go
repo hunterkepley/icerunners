@@ -13,13 +13,18 @@ import (
 	Packet "github.com/hunterkepley/defterra/packet"
 )
 
+var (
+	player1 Player = createPlayer(newVec2f(0, 0), PNetwork)
+	player2 Player = createPlayer(newVec2f(0, 100), PNetwork)
+)
+
 // GameEntities holds all of the game's objects
 type GameEntities struct {
 	resources GameResources // Resources
 	gameMap   Map           // Game map
 	camera    Camera        // Camera
 	player    Player        // The actual player
-	players   []Player
+	players   []*Player
 
 	// Networking stuff (keep below other entities)
 	conn               *net.UDPConn
