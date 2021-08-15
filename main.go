@@ -48,9 +48,6 @@ func (g *Game) Init() {
 	// Play song
 	//go music[rand.Intn(len(music)-1)].play()
 
-	// Game Entities
-	g.gameEntities.player = createPlayer(newVec2f(100, 200))
-
 	// GAME SETTINGS
 	loadSettings(&g.settings)
 

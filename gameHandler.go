@@ -21,13 +21,15 @@ type GameEntities struct {
 	player    Player        // The actual player
 
 	// Networking stuff (keep below other entities)
-	conn               *net.UDPConn
-	buf                []byte
-	chN                chan int
-	chAddr             chan net.Addr
-	serverAddr         net.Addr
-	wgSendDataToServer sync.WaitGroup
-	id                 []byte
+	conn                   *net.UDPConn
+	buf                    []byte
+	chN                    chan int
+	chAddr                 chan net.Addr
+	serverAddr             net.Addr
+	wgSendDataToServer     sync.WaitGroup
+	sendPlayerDataTimer    int
+	sendPlayerDataTimerMax int
+	id                     []byte
 }
 
 // GameResources holds all of the game's resources (images/music/sound)
@@ -43,6 +45,12 @@ func (g *GameResources) init() {
 func (g *GameEntities) init() {
 	// Initialize game resources
 	g.resources.init()
+	id := make([]byte, 2)
+	binary.LittleEndian.PutUint16(id, 0)
+	g.id = id
+	g.sendPlayerDataTimerMax = 10
+
+	g.player = createPlayer(newVec2f(100, 300), PLocal)
 
 	// Init map
 	g.gameMap = initializeMap()
@@ -61,7 +69,7 @@ func (g *GameEntities) init() {
 	// Packet info: 00000000 00001111
 	ds := make([]byte, 2)
 	binary.BigEndian.PutUint16(ds, 15)
-	packet := Packet.CreatePacket(ds, []byte{0, 0}, []byte{}) // 0000000000001111 -- PCServerJoined (15)
+	packet := Packet.CreatePacket(ds, []byte{0, 0}, g.id, []byte{}) // 0000000000001111 -- PCServerJoined (15)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -80,11 +88,15 @@ func updateGame(g *GameEntities) {
 	// Update entities
 	g.player.update()
 
-	// Send player data to server
-	go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionX[:], g.player.position.x)
-	g.wgSendDataToServer.Add(1)
-	go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionY[:], g.player.position.y)
-	g.wgSendDataToServer.Add(1)
+	if g.sendPlayerDataTimer == g.sendPlayerDataTimerMax {
+		// Send player data to server
+		go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionX[:], g.player.position.x)
+		g.wgSendDataToServer.Add(1)
+		go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionY[:], g.player.position.y)
+		g.wgSendDataToServer.Add(1)
+		g.sendPlayerDataTimer = 0
+	}
+	g.sendPlayerDataTimer++
 
 	// Update camera
 	g.camera.update()
@@ -112,7 +124,7 @@ func sendPlayerDataToServer(g *GameEntities, _code uint16, _type []byte, _data f
 
 	data := make([]byte, 16)
 	binary.LittleEndian.PutUint64(data[:], math.Float64bits(_data))
-	packet := Packet.CreatePacket(ds, _type, data[:])
+	packet := Packet.CreatePacket(ds, _type, g.id, data[:])
 
 	packet.Send(g.conn, g.serverAddr)
 	// ^ send player position
@@ -132,19 +144,20 @@ func listenToServer(g *GameEntities) {
 	case _ = <-g.chN:
 		addr := <-g.chAddr
 		g.serverAddr = addr
-	case <-time.After(time.Microsecond):
+	case <-time.After(time.Millisecond):
 	}
 
 	p := Packet.DecodePacket(g.buf)
+
+	PCClientData := make([]byte, 2)
+	binary.BigEndian.PutUint16(PCClientData, 32)
 
 	if len(p.Code) > 0 {
 		switch {
 		case p.Code[0] == byte(0), p.Code[1] == byte(15):
 			g.conn.Close()
-		case p.Code[0] == Packet.DCameraZoom[0], p.Code[1] == Packet.DCameraZoom[1]:
-			fmt.Println("e")
-			g.camera.zoom = Packet.Byte2Float64(p.Data)
-		case p.Code[0] == Packet.DPlayerPositionX[0], p.Code[1] == Packet.DPlayerPositionX[1]:
+		case p.Code[0] == PCClientData[0], p.Code[1] == PCClientData[1]:
+			fmt.Println(p.Data)
 		}
 	}
 }

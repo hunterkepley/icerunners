@@ -56,10 +56,11 @@ type Player struct {
 	image        *ebiten.Image
 }
 
-func createPlayer(position Vec2f) Player {
+func createPlayer(position Vec2f, _type PlayerType) Player {
 	return Player{
 		position:     position,
 		moveSpeed:    0.15,
+		_type:        _type,
 		subImageRect: image.Rect(0, 0, iPlayerSpritesheet.Bounds().Dx(), iPlayerSpritesheet.Bounds().Dy()),
 		image:        iPlayerSpritesheet,
 	}

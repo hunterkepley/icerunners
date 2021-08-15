@@ -141,6 +141,12 @@ github.com/hunterkepley/defterra v0.0.0-20210814182037-ba51d3b9cd35 h1:nAKlkpaz8
 github.com/hunterkepley/defterra v0.0.0-20210814182037-ba51d3b9cd35/go.mod h1:Y+bVTwypmr+jwaB+6biyl/lOlw3fXT1FQPhWSxYSwbc=
 github.com/hunterkepley/defterra v0.0.0-20210815004224-2f17cd34287f h1:f+psCMqztRihPHdwVqDeMU42ij/6iHjw+FrYWh1whI8=
 github.com/hunterkepley/defterra v0.0.0-20210815004224-2f17cd34287f/go.mod h1:Y+bVTwypmr+jwaB+6biyl/lOlw3fXT1FQPhWSxYSwbc=
+github.com/hunterkepley/defterra v0.0.0-20210815040656-fc49cd733012 h1:cB4sFNXl6PAYCCODv3poNh9gvfDbzrA0w6/JULwU57s=
+github.com/hunterkepley/defterra v0.0.0-20210815040656-fc49cd733012/go.mod h1:Y+bVTwypmr+jwaB+6biyl/lOlw3fXT1FQPhWSxYSwbc=
+github.com/hunterkepley/defterra v0.0.0-20210815044541-050aae8400eb h1:Xzsqd22SzpviECsznKZ0Z0L4xH0eapiFiqhNfJXIqMA=
+github.com/hunterkepley/defterra v0.0.0-20210815044541-050aae8400eb/go.mod h1:Y+bVTwypmr+jwaB+6biyl/lOlw3fXT1FQPhWSxYSwbc=
+github.com/hunterkepley/defterra v0.0.0-20210815055251-7ea44d507ad3 h1:QGVkDqjfg6VrcC3Ba0AXoK6v+a7mrBFUtTErmKyXE+I=
+github.com/hunterkepley/defterra v0.0.0-20210815055251-7ea44d507ad3/go.mod h1:Y+bVTwypmr+jwaB+6biyl/lOlw3fXT1FQPhWSxYSwbc=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/jakecoffman/cp v1.0.0/go.mod h1:JjY/Fp6d8E1CHnu74gWNnU0+b9VzEdUVPoJxg2PsTQg=
