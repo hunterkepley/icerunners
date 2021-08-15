@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"net"
 	"sync"
 	"time"
@@ -26,6 +27,7 @@ type GameEntities struct {
 	chAddr             chan net.Addr
 	serverAddr         net.Addr
 	wgSendDataToServer sync.WaitGroup
+	id                 []byte
 }
 
 // GameResources holds all of the game's resources (images/music/sound)
@@ -47,7 +49,7 @@ func (g *GameEntities) init() {
 	g.camera = createCamera(Vec2f{0, 0}, 4)
 
 	// Server (temporary until server browser/system made)
-	g.serverAddr = &net.UDPAddr{IP: net.IPv4(18, 208, 230, 70), Port: 10001, Zone: ""}
+	g.serverAddr = &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 10001, Zone: ""}
 	var err error
 	g.conn, err = net.ListenUDP(
 		"udp",
@@ -65,7 +67,6 @@ func (g *GameEntities) init() {
 	}
 
 	packet.Send(g.conn, g.serverAddr)
-
 }
 
 func updateGame(g *GameEntities) {
@@ -80,7 +81,10 @@ func updateGame(g *GameEntities) {
 	g.player.update()
 
 	// Send player data to server
-	go sendPlayerDataToServer(g)
+	go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionX[:], g.player.position.x)
+	g.wgSendDataToServer.Add(1)
+	go sendPlayerDataToServer(g, 32, Packet.DPlayerPositionY[:], g.player.position.y)
+	g.wgSendDataToServer.Add(1)
 
 	// Update camera
 	g.camera.update()
@@ -99,17 +103,16 @@ func drawGame(g *GameEntities, screen *ebiten.Image) {
 
 }
 
-func sendPlayerDataToServer(g *GameEntities) {
-	// Packet info: 00000000 00001111
+func sendPlayerDataToServer(g *GameEntities, _code uint16, _type []byte, _data float64) {
+	defer g.wgSendDataToServer.Done()
+	// Packet info: 0000 0000 code
 	// Player position
-	ds := make([]byte, 2)              // 0000 0000
-	binary.BigEndian.PutUint16(ds, 32) // 0000 0000 + 0010 0000
+	ds := make([]byte, 2)                 // 0000 0000
+	binary.BigEndian.PutUint16(ds, _code) // 0000 0000 + code0:3 code4:7
 
-	data := make([]byte, 0, 2)
-	binary.BigEndian.PutUint16(data, uint16(g.player.position.x))
-	binary.BigEndian.PutUint16(data, uint16(g.player.position.y))
-	fmt.Printf("!!! %s\n", data)
-	packet := Packet.CreatePacket(ds, Packet.DPlayerPosition, data)
+	data := make([]byte, 16)
+	binary.LittleEndian.PutUint64(data[:], math.Float64bits(_data))
+	packet := Packet.CreatePacket(ds, _type, data[:])
 
 	packet.Send(g.conn, g.serverAddr)
 	// ^ send player position
@@ -141,6 +144,7 @@ func listenToServer(g *GameEntities) {
 		case p.Code[0] == Packet.DCameraZoom[0], p.Code[1] == Packet.DCameraZoom[1]:
 			fmt.Println("e")
 			g.camera.zoom = Packet.Byte2Float64(p.Data)
+		case p.Code[0] == Packet.DPlayerPositionX[0], p.Code[1] == Packet.DPlayerPositionX[1]:
 		}
 	}
 }
