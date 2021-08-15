@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"image"
+	"image/color"
+	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 // PlayerState is a type for the current state of the Player
@@ -23,12 +25,13 @@ const (
 	// PFalling ... PLAYERSTATE ENUM [5]
 	PFalling
 
+	PStunned
 	//need states for: being stunned, hitting, invincible, and having frostrunners
 )
 
 func (b PlayerState) String() string {
 	return [...]string{"Unknown",
-		"PIdle", "PMovingLeft", "PMovingRight", "PJumping", "PFalling"}[b]
+		"PIdle", "PMovingLeft", "PMovingRight", "PJumping", "PFalling", "PStunned"}[b]
 }
 
 // PlayerType is a type for a local or network player (controllable)
@@ -56,11 +59,12 @@ type Player struct {
 
 	rotation float64
 
-	jump       bool
-	playerType string
-	stunned    bool
-	iframe     bool
-	hasBoot    bool
+	jump      bool
+	character string
+	stunned   bool
+	iframe    bool
+	hasBoot   bool
+	ult       int
 
 	subImageRect image.Rectangle
 	image        *ebiten.Image
@@ -79,12 +83,17 @@ func createPlayer(position Vec2f, _type PlayerType) Player {
 func (p *Player) update() {
 	p.size = newVec2i(p.subImageRect.Dx(), p.subImageRect.Dy())
 
-	if p.stunned == false {
+	if p.ult != 100 {
+		p.ult += 1
+	}
+
+	if p.stunned == false && p._type == PLocal {
 		p.input()
 	}
 
 	if p.stunned == true {
 		p.velocity.x = 0
+		p.state = PStunned
 	}
 	// Idle -- stop moving
 
@@ -162,24 +171,10 @@ func (p *Player) input() {
 		p.jump = true
 	}
 
-	//"down"
-	/*
-		if p.state == PJumping {
-			p.state = PFalling
-			//rn treats 0 as the ground
-			for p.position.y != 0 {
-				p.position.y -= p.velocity.y
-			}
-			/*
-				while onSolid false
-					p.position.y -= p.velocity.y
-	*/
-	//}
-
-	//movement abilities
+	//movement abilities Z key
 	if ebiten.IsKeyPressed(ebiten.KeyZ) {
-		abilities(p, "jax", "move")
-		fmt.Println("skill used")
+		abilities(p, "", "move")
+		//fmt.Println("skill used")
 	}
 
 	//stun test key
@@ -189,28 +184,15 @@ func (p *Player) input() {
 
 	}
 
-	/*
-		if press z{
-			if you have frost runners {
-				pressing z will dodge
-				p.ability(p.type, dodge)
-				set state to invincible
-			}
-			else{
-				pressing z will have u use ur movement ability, p.ability(p.type, move)
-				}
-			}
+	//ult and basic atk
+	if ebiten.IsKeyPressed(ebiten.KeyX) {
+		if p.ult == 101 {
+			p.ult = 0
+			abilities(p, "", "ult")
+		} else {
+			abilities(p, "", "atk")
 		}
-
-		if you press x && boots == false{
-			if (ultRdy == true)
-				p.ability(p.type, ult)
-			else
-				p.ability(p.type, atk)
-				set state to hitting
-		}
-
-	*/
+	}
 
 }
 
@@ -237,7 +219,7 @@ func abilities(p *Player, character string, moveType string) {
 
 		case "jax":
 			//extra jump
-			if p.state == PMovingLeft {
+			if p.state == PMovingLeft || p.state == PMovingRight {
 				p.velocity.y = 0
 				p.velocity.y -= 7
 			}
@@ -260,7 +242,8 @@ func abilities(p *Player, character string, moveType string) {
 		case "jax":
 
 		default:
-
+			//p.image.DrawImage(p.image, &ebiten.DrawImageOptions{})
+			ebitenutil.DrawRect(p.image, 600, 300, 800, 700, color.Black)
 		}
 
 	//dodging u need frostwalkers for this
@@ -276,49 +259,17 @@ func abilities(p *Player, character string, moveType string) {
 	}
 }
 
-/*
-
-abilities(character, type){
-
-switch (type):
-
-	case "atk":
-
-		switch (character):
-
-			case1: makes character play sprite animation and makes them hitting (will probably make hitbox sprite based)
-			casecharacter2:
-			casecharacter3:
-
-	case "move":
-
-		switch (character):
-
-			case1: makes character play sprite animation and basically moves their position in whatever way we want
-			case2:
-			case3:
-
-	case "ult":
-
-		switch (character):
-
-			case1: makes character ult however we want them to ult
-			case2:
-			case3:
-
-	case "dodge":
-
-		switch (character):
-
-			case1: makes character dodge, giving i frames, their dodges can be different and act like move but w/ i frames
-			case2:
-			case3:
+type platform struct {
+	rectangle image.Rectangle
+	rectangles rectangle[]
 }
-
-*/
 
 func (p *Player) render(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
+
+	ebitenutil.DrawRect(screen, 0, 0, 80, 20, color.Black)
+	ebitenutil.DebugPrint(screen, p.state.String())
+	ebitenutil.DebugPrint(screen, strconv.Itoa(p.ult))
 
 	// ROTATE & FLIP
 	op.GeoM.Translate(float64(0-p.size.x)/2, float64(0-p.size.y)/2)
