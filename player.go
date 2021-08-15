@@ -66,7 +66,7 @@ type Player struct {
 	image        *ebiten.Image
 }
 
-func createPlayer(position Vec2f) Player {
+func createPlayer(position Vec2f, _type PlayerType) Player {
 	return Player{
 		position:     position,
 		moveSpeed:    0.15,
@@ -225,20 +225,8 @@ func abilities(p *Player, character string, moveType string) {
 		switch character {
 
 		case "jax":
-			//extra jump
-			if p.state == PMovingLeft {
-				p.velocity.y = 0
-				p.velocity.y -= 7
-			}
+
 		default:
-			//dashes in direction moving
-			if p.state == PMovingLeft {
-				p.velocity.x = 0
-				p.velocity.x -= 7
-			} else if p.state == PMovingRight {
-				p.velocity.x = 0
-				p.velocity.x += 7
-			}
 
 		}
 
@@ -263,25 +251,25 @@ func abilities(p *Player, character string, moveType string) {
 			}
 		}
 
+	//ults w/o boots
 	case "ult":
 
 		switch character {
 
 		case "jax":
-			//extra jump
-			if p.state == PMovingLeft {
-				p.velocity.y = 0
-				p.velocity.y -= 7
-			}
+
 		default:
-			//dashes in direction moving
-			if p.state == PMovingLeft {
-				p.velocity.x = 0
-				p.velocity.x -= 7
-			} else if p.state == PMovingRight {
-				p.velocity.x = 0
-				p.velocity.x += 7
-			}
+
+		}
+
+	//dodging u need frostwalkers for this
+	case "dodge":
+
+		switch character {
+
+		case "jax":
+
+		default:
 
 		}
 	}
