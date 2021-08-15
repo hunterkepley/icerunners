@@ -13,18 +13,13 @@ import (
 	Packet "github.com/hunterkepley/defterra/packet"
 )
 
-var (
-	player1 Player = createPlayer(newVec2f(0, 0), PNetwork)
-	player2 Player = createPlayer(newVec2f(0, 100), PNetwork)
-)
-
 // GameEntities holds all of the game's objects
 type GameEntities struct {
 	resources GameResources // Resources
 	gameMap   Map           // Game map
 	camera    Camera        // Camera
 	player    Player        // The actual player
-	players   []*Player
+	players   []Player
 
 	// Networking stuff (keep below other entities)
 	conn                   *net.UDPConn
@@ -57,6 +52,9 @@ func (g *GameEntities) init() {
 	g.sendPlayerDataTimerMax = 10
 
 	g.player = createPlayer(newVec2f(100, 300), PLocal)
+
+	g.players = append(g.players, createPlayer(newVec2f(10, 10), PNetwork))
+	g.players = append(g.players, createPlayer(newVec2f(150, 10), PNetwork))
 
 	// Init map
 	g.gameMap = initializeMap()
@@ -93,6 +91,9 @@ func updateGame(g *GameEntities) {
 
 	// Update entities
 	g.player.update()
+	for i := 0; i < len(g.players); i++ {
+		g.players[i].update()
+	}
 
 	if g.sendPlayerDataTimer == g.sendPlayerDataTimerMax {
 		// Send player data to server
@@ -114,6 +115,9 @@ func drawGame(g *GameEntities, screen *ebiten.Image) {
 	g.gameMap.clearImage()
 
 	// Render map entities ---------------------------------
+	for i := 0; i < len(g.players); i++ {
+		g.players[i].render(g.gameMap.image)
+	}
 	g.player.render(g.gameMap.image)
 
 	// Game map ---------------------------------
