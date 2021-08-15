@@ -25,7 +25,6 @@ var (
 // Game is the info for the game
 type Game struct {
 	gameEntities GameEntities
-	players      []Player
 
 	state int // The game state, 0 is in main menu, 1 is in game, 2 is paused
 
@@ -45,9 +44,9 @@ func (g *Game) Init() {
 	g.state = 1
 
 	// Game Entities
-	g.players = append(g.players, createPlayer(newVec2f(0, 0), PNetwork))
-	//g.players = append(g.players, createPlayer(newVec2f(0, 200), PNetwork))
-	//g.players = append(g.players, createPlayer(newVec2f(0, 400), PNetwork))
+	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 0), PNetwork))
+	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 100), PNetwork))
+	g.gameEntities.players = append(g.gameEntities.players, createPlayer(newVec2f(0, 200), PNetwork))
 
 	//g.gameEntities.player = createPlayer(newVec2f(0, 0), PNetwork)
 

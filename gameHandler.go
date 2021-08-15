@@ -19,6 +19,7 @@ type GameEntities struct {
 	gameMap   Map           // Game map
 	camera    Camera        // Camera
 	player    Player        // The actual player
+	players   []Player
 
 	// Networking stuff (keep below other entities)
 	conn               *net.UDPConn
